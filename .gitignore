@@ -1,0 +1,15 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Distribution / packaging
+dist/
+
+# Environments
+.venv
+
+# mypy
+.mypy_cache/
+__pycache__/logprof.cpython-310.pyc
