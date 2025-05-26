@@ -8,7 +8,7 @@ def get_optional_dependencies(*groups):
     return resolve(dep_groups, *groups)
 
 
-@nox.session(name="do-lint")
+@nox.session(default=False, name="do-lint")
 def do_lint(session):
     session.install(*get_optional_dependencies("dev"))
 
@@ -18,7 +18,7 @@ def do_lint(session):
 
 
 @nox.session
-def lint(session):
+def check_lint(session):
     session.install(*get_optional_dependencies("dev"))
 
     session.run("black", ".", "--check")
