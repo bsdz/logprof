@@ -1,7 +1,12 @@
 import logging
-import resource
 from contextlib import ContextDecorator
 from time import perf_counter_ns
+
+# some platforms don't have resource (e.g. WASI)
+try:
+    import resource
+except ImportError:
+    resource = None  # type: ignore
 
 
 def _format_time(rem_ns, format) -> str:
@@ -59,12 +64,16 @@ class logprof(ContextDecorator):
         level: str = "INFO",
         **kwds,
     ):
-        """Construct a logprof context decorator. `label` is displayed before
+        """Construct a logprof context decorator.
+
+        `label` is displayed before
         and after the decorated function is called. `tf` is a time format and
         can be one of "seconds", "nanoseconds", "breakdown" or None. `mf` is a
         memory format and can be one of "kilobytes", "human", "breakdown" or
         None. If either `tf` or `mf` is None, no time or memory information is
         logged. `logger` is the logger to use. `level` is the log level to use.
+        When used as a context manager, the attributes `ns_delta` and `kb_delta`
+        are set to the time and memory deltas, respectively.
         """
         if tf not in (None, "seconds", "nanoseconds", "breakdown"):
             raise ValueError(f"Invalid time format: {tf}")
@@ -73,6 +82,8 @@ class logprof(ContextDecorator):
         self.label = label
         self.tf = tf
         self.mf = mf
+        self.ns_delta = None
+        self.kb_delta = None
         self.logger = logger or logging.getLogger(__name__)
         self.level = (
             level if isinstance(level, int) else logging._nameToLevel[level.upper()]
@@ -84,7 +95,7 @@ class logprof(ContextDecorator):
         if self.tf is not None:
             self.pcns = perf_counter_ns()
 
-        if self.mf is not None:
+        if resource is not None and self.mf is not None:
             self.ru = resource.getrusage(resource.RUSAGE_SELF)
         return self
 
@@ -92,12 +103,12 @@ class logprof(ContextDecorator):
         parts = [f"<<< '{self.label}' finished."]
 
         if self.tf is not None:
-            rem_ns = perf_counter_ns() - self.pcns
+            self.ns_delta = rem_ns = perf_counter_ns() - self.pcns
             parts.append("Took " + _format_time(rem_ns, self.tf) + ".")
 
-        if self.mf is not None:
+        if resource is not None and self.mf is not None:
             ru = resource.getrusage(resource.RUSAGE_SELF)
-            rem_kb = ru.ru_maxrss - self.ru.ru_maxrss
+            self.kb_delta = rem_kb = ru.ru_maxrss - self.ru.ru_maxrss
             parts.append("Used " + _format_memory(rem_kb, self.mf) + ".")
 
         self.logger.log(self.level, " ".join(parts))

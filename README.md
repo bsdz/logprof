@@ -55,6 +55,5 @@ with logprof("foo", tf="breakdown", mf="breakdown"):
 Before commit run following format commands in project folder:
 
 ```bash
-poetry run black .
-poetry run isort . --profile black
+nox --session do-lint
 ```

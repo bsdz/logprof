@@ -1,24 +1,30 @@
-[tool.poetry]
+[project]
 name = "logprof"
-version = "0.1.0"
 description = "Simple logging profiler."
-authors = ["Blair Azzopardi <blairuk@gmail.com>"]
 license = "MIT"
+version = "0.1.1"
 readme = "README.md"
+authors = [{name = "Blair Azzopardi", email = "blairuk@gmail.com"}]
+requires-python = '>=3.10,<4.0'
+
+[project.urls]
 repository = "https://github.com/bsdz/logprof"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-
-
-[tool.poetry.group.dev.dependencies]
-black = "^23.7.0"
-mypy = "^1.5.0"
-isort = "^5.12.0"
+[project.optional-dependencies]
+dev = [
+  "black>=25.1.0,<26.0.0",
+  "mypy>=1.15.0,<2.0.0",
+  "isort>=6.0.1,<7.0.0",
+  "docformatter>=1.7.0,<2.0.0",
+  "coverage>=7.8.2,<8.0.0",
+  "nox>=2025.5.1,<2026.0.0",
+]
+test = [
+  "pandas>=2.2.3,<3.0.0"
+]
 
 [tool.isort]
 profile = "black"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.setuptools]
+py-modules = ["argcast"]
